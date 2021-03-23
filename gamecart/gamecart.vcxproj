@@ -155,6 +155,7 @@
     <ClCompile Include="src\sqlite\sqlite3.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\data_types.h" />
     <ClInclude Include="src\sqlite\sqlite3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
