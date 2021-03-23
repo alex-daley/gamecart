@@ -3,14 +3,9 @@
 #include <iostream>
 #include <string>
 
+#include "data_types.h"
+
 namespace {
-
-    struct User {
-        std::string name;
-        std::string email;
-        int age;
-    };
-
     template <typename T>
     std::optional<T> parse_number(std::string input) {
         T result = 0;
