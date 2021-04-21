@@ -3,26 +3,32 @@
 #include <string>
 #include <optional>
 #include <vector>
+#include <memory>
+
+#include "application.hpp"
+#include "console.hpp"
 #include "database.hpp"
 #include "database_schema.hpp"
-#include "console.hpp"
 
 int main() 
 {
+    Console console;
+    std::unique_ptr<Database> database;
+
     try
     {
-        Database database("gamecard.db");
-        DatabaseSchema::create_tables(database);
+        database = std::make_unique<Database>("gamecart.db");
+        DatabaseSchema::create_tables(*database);
     }
     catch (const std::runtime_error& err)
     {
-        std::cout << "Fatal Error: Failed to initialise database\n";
-        std::cout << err.what();
+        console << "Failed to initialise database\n";
+        console << err.what();
         return 1;
     }
 
-    Console console;
-    int choice = console.menu("Login", "Create Account");
+    Application app(console, database.get());
+    app.run();
 
     return 0;
 } 

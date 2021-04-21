@@ -2,8 +2,9 @@
 #include "sqlite/sqlite3.h"
 #include "database.hpp"
 
-RowReader::RowReader(sqlite3_stmt* stmt)
+RowReader::RowReader(sqlite3* db, sqlite3_stmt* stmt)
 {
+    m_db = db;
     m_stmt = stmt;
 }
 
@@ -13,6 +14,11 @@ RowReader::~RowReader()
     {
         sqlite3_finalize(m_stmt);
     }
+}
+
+RowReader::operator bool() const
+{
+    return sqlite3_errcode(m_db) == SQLITE_ROW;
 }
 
 bool RowReader::step() const
@@ -70,9 +76,9 @@ RowReader Statement::execute()
         std::string info = sqlite3_errmsg(m_db);
         throw std::runtime_error("Failed to step prepared statement: " + info);
     }
-
+    
     m_defer_free = true;
-    return RowReader(m_stmt);
+    return RowReader(m_db, m_stmt);
 }
 
 Database::Database(std::string file)

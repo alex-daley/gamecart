@@ -8,14 +8,18 @@ struct sqlite3_stmt;
 class RowReader
 {
 public:
-    RowReader(sqlite3_stmt* stmt);
+    RowReader(sqlite3* db, sqlite3_stmt* stmt);
     ~RowReader();
+
+    // Implicit conversion to bool. Returns true if a row is present
+    operator bool() const;
 
     bool step() const;
     int get_int(int column) const;
     std::string get_text(int column) const;
 
 private:
+    sqlite3* m_db;
     sqlite3_stmt* m_stmt;
 };
 
