@@ -30,12 +30,18 @@
     <ClCompile Include="src\database_schema.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\console.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\sqlite\sqlite3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\database.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\console.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

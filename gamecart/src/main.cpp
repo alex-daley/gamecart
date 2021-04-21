@@ -1,6 +1,11 @@
 #include <iostream>
+#include <charconv>
+#include <string>
+#include <optional>
+#include <vector>
 #include "database.hpp"
 #include "database_schema.hpp"
+#include "console.hpp"
 
 int main() 
 {
@@ -16,6 +21,8 @@ int main()
         return 1;
     }
 
+    Console console;
+    int choice = console.menu("Login", "Create Account");
+
     return 0;
 } 
- 

@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\console.cpp" />
     <ClCompile Include="src\database.cpp" />
     <ClCompile Include="src\database_schema.cpp" />
     <ClCompile Include="src\database_schema.hpp" />
@@ -158,6 +159,7 @@
     <ClCompile Include="src\sqlite\sqlite3.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\console.hpp" />
     <ClInclude Include="src\database.hpp" />
     <ClInclude Include="src\sqlite\sqlite3.h" />
   </ItemGroup>
