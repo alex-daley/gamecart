@@ -10,7 +10,9 @@ CREATE TABLE IF NOT EXISTS User
     is_admin      INTEGER NOT NULL
 ))";
 
-void DatabaseSchema::create_tables(Database& db)
+void DatabaseSchema::create_tables(Database& database)
 {
-    db.prepare(USER_TABLE).execute();
+    database
+        .prepare(USER_TABLE)
+        .execute();
 }

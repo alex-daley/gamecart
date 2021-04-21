@@ -11,13 +11,13 @@ int main()
 {
     try
     {
-        Database db("gamecard.db");
-        DatabaseSchema::create_tables(db);
+        Database database("gamecard.db");
+        DatabaseSchema::create_tables(database);
     }
-    catch (const std::runtime_error& e)
+    catch (const std::runtime_error& err)
     {
         std::cout << "Fatal Error: Failed to initialise database\n";
-        std::cout << e.what();
+        std::cout << err.what();
         return 1;
     }
 
