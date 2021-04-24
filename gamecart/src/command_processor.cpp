@@ -64,6 +64,8 @@ void CommandProcessor::step() {
             return;
         }
     }
+
+    cout() << "Command not found.\n";
 }
 
 std::string CommandProcessor::readln() {
