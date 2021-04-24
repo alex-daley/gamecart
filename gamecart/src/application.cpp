@@ -6,6 +6,7 @@
 
 #include "application.hpp"
 #include "command.hpp"
+#include "table.hpp"
 
 // Surround a string with the ANSI escape code for yellow.
 #define BOLD(str) "\u001b[33m" + std::string(str) + "\u001b[37m"
@@ -131,25 +132,21 @@ void Application::print_games() {
         return;
     }
 
-    std::stringstream games;
-    games << std::setw(20) << std::left << "Name";
-    games << std::setw(10) << std::left << "Genre";
-    games << std::setw(10) << std::left << "Price";
-    games << std::setw(15) << std::left << "Age Rating";
-    games << std::setw(10) << std::left << "Copies";
-    games << std::endl;
+    Table table;
+    table.set_headings({ "Name", "Genre", "Price", "Age Rating", "Copies" });
 
     do {
-        games << std::setw(20) << std::left << rows.get_text(1);
-        games << std::setw(10) << std::left << rows.get_text(2);
-        games << std::setw(10) << std::left << rows.get_double(3);
-        games << std::setw(15) << std::left << rows.get_int(4);
-        games << std::setw(10) << std::left << rows.get_int(5);
-        games << std::endl;
+        table.add_row({
+            rows.get_text(1),
+            rows.get_text(2),
+            std::to_string(rows.get_double(3)),
+            std::to_string(rows.get_int(4)),
+            std::to_string(rows.get_int(5)) 
+        });
     }
     while (rows.step());
 
-    processor->cout() << games.str();
+    processor->cout() << table.str(20);
 }
 
 void Application::print_cart() {

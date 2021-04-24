@@ -158,6 +158,7 @@
     <ClCompile Include="src\database_schema.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\sqlite\sqlite3.c" />
+    <ClCompile Include="src\table.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application.hpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="src\database.hpp" />
     <ClInclude Include="src\database_schema.hpp" />
     <ClInclude Include="src\sqlite\sqlite3.h" />
+    <ClInclude Include="src\table.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
