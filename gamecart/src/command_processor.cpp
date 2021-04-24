@@ -58,7 +58,6 @@ void CommandProcessor::step() {
             auto args = split_on_whitespace(all_args);    
             
             // Invoke the command callback and pass in parsed arguments.
-            cout() << std::endl;
             command.callback(args);
             cout() << std::endl;
             return;

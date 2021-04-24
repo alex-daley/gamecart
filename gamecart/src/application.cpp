@@ -33,39 +33,75 @@ void Application::setup_commands() {
     processor->bind({
         "cart show",
         "View games in your cart",
-        [&](auto args) {}
+        [&](auto args) { print_cart(); }
     });
 
     processor->bind({
         "cart add",
         "Add a game to your cart (e.g. cart add factorio)",
-        [&](auto args) {}
+        [&](auto args) {
+            add_to_cart(args.empty() ? "" : args[0]); 
+        }
     });
 
     processor->bind({
         "cart remove",
-        "Remove a game from your cart (e.g. cart remove factorio)",
-        [&](auto args) {}
-    });
-
-    processor->bind({
-        "cart buy",
-        "Purchase games the games in your cart",
-        [&](auto args) {}
+        "Remove a game from your cart (e.g. cart remove Factorio)",
+        [&](auto args) { 
+            remove_from_cart(args.empty() ? "" : args[0]); 
+        }
     });
 
     processor->bind({
         "q",
         "Quit this utility",
-        [&](auto args) { processor->cout() << "Goodbye" << std::endl; }
+        [&](auto args) { 
+            processor->cout() << "Goodbye" << std::endl;
+        }
     });
 
     processor->bind({
         "help",
         "Output command documentation",
-        [&](auto args) { print_command_help(); }
+        [&](auto args) { 
+            print_command_help(); 
+        }
     });
 
+}
+
+void Application::add_to_cart(std::string game_name) {
+    auto rows = database->prepare("SELECT id FROM Games where name = ?")
+        .bind_text(game_name)
+        .execute();
+
+    if (rows) {
+        int id = rows.get_int(0);
+        cart.add(id);
+        processor->cout() << "Added game: " << game_name << " to cart.\n";
+    }
+    else {
+        std::stringstream info;
+        info << "Game: not found\n";
+        processor->cout() << info.str();
+    }
+}
+
+void Application::remove_from_cart(std::string game_name) {
+    auto rows = database->prepare("SELECT id FROM Games where name = ?")
+        .bind_text(game_name)
+        .execute();
+    
+    if (rows) {
+        int id = rows.get_int(0);
+        cart.remove(id);
+        processor->cout() << "Removed game: " << game_name << " from cart.\n";
+    }
+    else {
+        std::stringstream info;
+        info << "Game: not found\n";
+        processor->cout() << info.str();
+    }
 }
 
 void Application::print_command_help() {
@@ -114,4 +150,35 @@ void Application::print_games() {
     while (rows.step());
 
     processor->cout() << games.str();
+}
+
+void Application::print_cart() {
+    std::stringstream table;
+    table << std::setw(20) << std::left << "Cost (GBP)";
+    table << std::setw(20) << std::left << "Name";
+    table << std::endl;
+
+    double total_cost = 0.0;
+
+    for (auto& id : cart.game_ids()) {
+    
+        auto row = database->prepare("SELECT name, price FROM Games WHERE id = ?")
+            .bind_integer(id)
+            .execute();
+
+        if (row) {
+            auto name = row.get_text(0);
+            auto cost = row.get_double(1);
+            
+            table << std::setw(20) << std::left << cost;
+            table << std::setw(20) << std::left << name;
+            table << std::endl;
+
+            total_cost += cost;
+        }
+    }
+
+    table << total_cost << std::endl;
+
+    processor->cout() << table.str();
 }

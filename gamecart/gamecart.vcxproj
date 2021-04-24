@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp" />
+    <ClCompile Include="src\cart.cpp" />
     <ClCompile Include="src\command_processor.cpp" />
     <ClCompile Include="src\database.cpp" />
     <ClCompile Include="src\database_schema.cpp" />
@@ -160,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\application.hpp" />
+    <ClInclude Include="src\cart.hpp" />
     <ClInclude Include="src\command.hpp" />
     <ClInclude Include="src\command_processor.hpp" />
     <ClInclude Include="src\database.hpp" />

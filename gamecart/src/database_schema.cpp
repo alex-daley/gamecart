@@ -42,5 +42,5 @@ void DatabaseSchema::create_tables(Database& database) {
     insert_game(database, "Cities-Skylines"  , "Strategy"  , 16.00, 3 , 100);
     insert_game(database, "Yakuza-0"         , "Action"    , 14.99, 18, 250);
     insert_game(database, "Celeste"          , "Platformer", 14.99, 3 , 100);
-    insert_game(database, "The Outer Worlds" , "RPG"       , 20.00, 18, 500);
+    insert_game(database, "The-Outer-Worlds" , "RPG"       , 20.00, 18, 500);
 }
