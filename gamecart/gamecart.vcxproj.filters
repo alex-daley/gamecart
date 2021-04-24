@@ -21,19 +21,7 @@
     <ClCompile Include="src\sqlite\sqlite3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\database.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\database_schema.hpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\database_schema.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\console.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\application.cpp">
+    <ClCompile Include="src\command_processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,13 +29,10 @@
     <ClInclude Include="src\sqlite\sqlite3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\database.hpp">
+    <ClInclude Include="src\command.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\console.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\application.hpp">
+    <ClInclude Include="src\command_processor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

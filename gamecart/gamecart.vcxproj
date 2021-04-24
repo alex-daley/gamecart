@@ -151,18 +151,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\application.cpp" />
-    <ClCompile Include="src\console.cpp" />
-    <ClCompile Include="src\database.cpp" />
-    <ClCompile Include="src\database_schema.cpp" />
-    <ClCompile Include="src\database_schema.hpp" />
+    <ClCompile Include="src\command_processor.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\sqlite\sqlite3.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\application.hpp" />
-    <ClInclude Include="src\console.hpp" />
-    <ClInclude Include="src\database.hpp" />
+    <ClInclude Include="src\command.hpp" />
+    <ClInclude Include="src\command_processor.hpp" />
     <ClInclude Include="src\sqlite\sqlite3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
