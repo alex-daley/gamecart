@@ -10,8 +10,9 @@
 // Surround a string with the ANSI escape code for yellow.
 #define BOLD(str) "\u001b[33m" + std::string(str) + "\u001b[37m"
 
-Application::Application(CommandProcessor* processor) : 
-    processor(processor){
+Application::Application(CommandProcessor* processor, Database* database) : 
+    processor(processor), 
+    database(database) {
     setup_commands();
 }
 
@@ -26,7 +27,7 @@ void Application::setup_commands() {
     processor->bind({
         "games",
         "View all games available for purchase",
-        [&](auto args) {}
+        [&](auto args) { print_games(); }
     });
 
     processor->bind({
@@ -70,7 +71,7 @@ void Application::setup_commands() {
 void Application::print_command_help() {
     std::stringstream help;
     for (auto& command : processor->commands()) {
-        help << std::setw(30) << std::left;
+        help << std::setw(25) << std::left;
         help << BOLD(command.name);
         help << command.description;
         help << std::endl;
@@ -86,4 +87,31 @@ void Application::print_welcome() {
     welcome << "================================================================\n";
     welcome << "Type " BOLD("help") " to get started                          \n\n";
     processor->cout() << welcome.str();
+}
+
+void Application::print_games() {
+    auto rows = database->prepare("SELECT * FROM Games").execute();
+    if (!rows) {
+        return;
+    }
+
+    std::stringstream games;
+    games << std::setw(20) << std::left << "Name";
+    games << std::setw(10) << std::left << "Genre";
+    games << std::setw(10) << std::left << "Price";
+    games << std::setw(15) << std::left << "Age Rating";
+    games << std::setw(10) << std::left << "Copies";
+    games << std::endl;
+
+    do {
+        games << std::setw(20) << std::left << rows.get_text(1);
+        games << std::setw(10) << std::left << rows.get_text(2);
+        games << std::setw(10) << std::left << rows.get_double(3);
+        games << std::setw(15) << std::left << rows.get_int(4);
+        games << std::setw(10) << std::left << rows.get_int(5);
+        games << std::endl;
+    }
+    while (rows.step());
+
+    processor->cout() << games.str();
 }

@@ -1,18 +1,26 @@
 #include <memory>
-#include <functional>
-#include <string>
-#include <sstream>
 #include <iostream>
-#include <iomanip>
 
 #include "application.hpp"
 #include "command.hpp"
 #include "command_processor.hpp"
+#include "database.hpp"
+#include "database_schema.hpp"
 
 int main() {
-    auto processor = std::make_unique<CommandProcessor>();
-    auto app = Application(processor.get());
-    app.run();
+    std::unique_ptr<Database> database;
+    try {
+        database = std::make_unique<Database>("gamecart.db");
+        DatabaseSchema::create_tables(*database);
+    }
+    catch (const std::runtime_error& err) {
+        std::cerr << "Failed to initialise database\n";
+        std::cerr << err.what() << std::endl;
+        return 1;
+    }
 
+    auto processor   = std::make_unique<CommandProcessor>();
+    auto application = Application(processor.get(), database.get());
+    application.run();
     return 0;
 }
