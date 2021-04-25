@@ -26,13 +26,17 @@ std::string Cart::prettyPrint() const
 {
     const std::vector<std::string> headings =
     {
-        "Name", "Genre", "Age Rating", "Price", "Copies"
+        "Name", "Price"
     };
 
     std::vector<std::vector<std::string>> rows;
     for (const Game& game : games)
     {
-        rows.push_back(game.toStringArray());
+        rows.push_back(
+        {
+            game.name,
+            Utils::toDecimalPlaces(game.price, 2)
+        });
     }
 
     return Utils::formatTable(headings, rows);

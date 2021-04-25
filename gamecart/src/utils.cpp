@@ -72,3 +72,10 @@ std::time_t Utils::dateParse(const std::string& dateString)
     s >> std::get_time(&dateTime, "%d/%m/%y");
     return std::mktime(&dateTime);
 }
+
+std::string Utils::toDecimalPlaces(double value, int places)
+{
+    std::stringstream s;
+    s << std::fixed << std::setprecision(places) << value;
+    return s.str();
+}

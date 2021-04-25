@@ -20,4 +20,8 @@ namespace Utils
 
     std::time_t dateParse(
         const std::string& dateString);
+
+    std::string toDecimalPlaces(
+        double value, 
+        int places);
 }
