@@ -50,7 +50,7 @@ void CommandProcessor::step()
         }
     }
 
-    std::cerr << "Command not found" << std::endl;
+    std::cerr << "Command not found\n\n";
 }
 
 std::string CommandProcessor::readline()

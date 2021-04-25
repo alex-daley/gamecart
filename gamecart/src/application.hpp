@@ -21,6 +21,9 @@ private:
     void addToCart(const std::string& game);
     void removeFromCart(const std::string& game);
 
+    void attemptLogin(const LoginRequest& request);
+    void logout();
+
     void printCart();
     void printHello();
     void printHelp();

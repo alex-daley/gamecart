@@ -38,11 +38,13 @@ std::string Utils::formatTable(
         s << std::setw(width) << std::left << cell;
     };
 
+    // Output table headings.
     for (const auto& cell : headings)
     {
-        outputCell(cell);
+        outputCell("[" + cell + "]");
     }
     
+    // Output rows.
     for (const auto& row : rows)
     {
         s << std::endl;

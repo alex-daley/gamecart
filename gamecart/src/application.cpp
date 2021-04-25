@@ -101,6 +101,39 @@ void Application::removeFromCart(const std::string& gameName)
     }
 }
 
+void Application::attemptLogin(const LoginRequest& request)
+{
+    try
+    {
+        userManager.login(request);
+        
+        if (userManager.isLoggedIn())
+        {
+            cout << "Logged in as user: " << request.username << "\n\n";
+        }
+    }
+    catch (const std::runtime_error& err)
+    {
+        cout << "Login failed: " << err.what() << "\n\n";
+    }
+}
+
+void Application::logout()
+{
+    if (!userManager.isLoggedIn())
+    {
+        cout << "You are not currently logged in\n\n";
+    }
+    else
+    {
+        userManager.logout();
+        if (!userManager.isLoggedIn())
+        {
+            cout << "You have been logged out\n\n";
+        }
+    }
+}
+
 void Application::printCart()
 {
     cout << (cart.size() < 1 ? "No games in cart" : cart.prettyPrint()) << "\n\n";
@@ -196,6 +229,32 @@ void Application::bindCommands()
         {
             std::string game = getGameName(args);
             removeFromCart(game);
+        }
+    });
+
+    proc.bind(
+    {
+        "login",
+        "login with a username and password (e.g. login admin password123)",
+        [&](auto args)
+        {
+            if (args.size() < 2)
+            {
+                cout << "Please provide a username and password\n\n";
+                return;
+            }
+
+            attemptLogin({ args[0], args[1] });
+        }
+    });
+
+    proc.bind(
+    {
+        "logout",
+        "logout the current user",
+        [&](auto args)
+        {
+            logout();
         }
     });
 

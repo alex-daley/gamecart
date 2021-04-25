@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS Games
     copies     INTEGER NOT NULL
 ))";
 
+// Passwords really should be hashed :)
+
 static constexpr auto USERS_TABLE = R"(
 CREATE TABLE IF NOT EXISTS Users
 (
@@ -29,6 +31,13 @@ VALUES
     (?, ?, ?, ?, ?)
 )";
 
+static constexpr auto INSERT_USER = R"(
+INSERT OR IGNORE INTO
+    Users (username, insecure_password, date_of_birth, email)
+VALUES
+    (?, ?, ?, ?)
+)";
+
 namespace 
 {
     void addGame(
@@ -43,12 +52,23 @@ namespace
             .bindInteger(copies)
             .execute();
     }
+
+    void addUser(
+        Database& database, std::string username, std::string insecurePassword,
+        std::string dateOfBirth, std::string email)
+    {
+        database.prepare(INSERT_USER)
+            .bindText(username)
+            .bindText(insecurePassword)
+            .bindText(dateOfBirth)
+            .bindText(email)
+            .execute();
+    }
 }
 
 void DatabaseSchema::createTables(Database& database) 
 {
     database.prepare(GAMES_TABLE).execute();
-    database.prepare(USERS_TABLE).execute();
 
     // Populate database with some example games.
     addGame(database, "Fall-Guys"       , "Action"  , 15.99,  3, 300);
@@ -58,4 +78,10 @@ void DatabaseSchema::createTables(Database& database)
     addGame(database, "Hades"           , "Action"  , 15.00, 12, 100);
     addGame(database, "Cities-Skylines" , "Strategy", 16.00, 3 , 100);
     addGame(database, "Yakuza-0"        , "Action"  , 14.99, 18, 250);
+
+    database.prepare(USERS_TABLE).execute();
+
+    // Populate database with some example users.
+    addUser(database, "admin", "admin", "01/01/1970", "admin@gamecart.co.uk");
+    addUser(database, "john" , "doe"  , "06/08/1997", "john@gamecart.co.uk");
 }
