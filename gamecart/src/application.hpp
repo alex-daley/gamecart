@@ -2,6 +2,7 @@
 #include "cart.hpp"
 #include "command_processor.hpp"
 #include "database.hpp"
+#include "user_manager.hpp"
 #include <ostream>
 
 class Application
@@ -15,6 +16,7 @@ private:
     CommandProcessor& proc;
     Database& database;
     Cart cart;
+    UserManager userManager;
 
     void addToCart(const std::string& game);
     void removeFromCart(const std::string& game);

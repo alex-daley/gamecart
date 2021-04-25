@@ -62,3 +62,11 @@ std::string Utils::colour(
     constexpr auto white = "\u001b[37m";
     return asniEscapeCode + text + white;
 }
+
+std::time_t Utils::dateParse(const std::string& dateString)
+{
+    std::stringstream s(dateString);
+    std::tm dateTime{};
+    s >> std::get_time(&dateTime, "%d/%m/%y");
+    return std::mktime(&dateTime);
+}

@@ -12,6 +12,16 @@ CREATE TABLE IF NOT EXISTS Games
     copies     INTEGER NOT NULL
 ))";
 
+static constexpr auto USERS_TABLE = R"(
+CREATE TABLE IF NOT EXISTS Users
+(
+    id                INTEGER PRIMARY KEY,
+    username          TEXT NOT NULL UNIQUE,
+    insecure_password TEXT NOT NULL,
+    date_of_birth     TEXT NOT NULL,
+    email             TEXT NOT NULL
+))";
+
 static constexpr auto INSERT_GAME = R"(
 INSERT OR IGNORE INTO
     Games (name, genre, age_rating, price, copies)      
@@ -38,6 +48,7 @@ namespace
 void DatabaseSchema::createTables(Database& database) 
 {
     database.prepare(GAMES_TABLE).execute();
+    database.prepare(USERS_TABLE).execute();
 
     // Populate database with some example games.
     addGame(database, "Fall-Guys"       , "Action"  , 15.99,  3, 300);

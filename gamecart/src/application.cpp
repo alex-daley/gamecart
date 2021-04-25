@@ -51,6 +51,7 @@ namespace
 Application::Application(CommandProcessor& proc, Database& database, std::ostream& cout) : 
     proc(proc), 
     database(database), 
+    userManager(database),
     cout(cout)
 {
     bindCommands();

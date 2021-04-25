@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <ctime>
 
 namespace Utils
 {
@@ -16,4 +17,7 @@ namespace Utils
     std::string colour(
         const std::string& text,
         const std::string& asniEscapeCode = "\u001b[33m");
+
+    std::time_t dateParse(
+        const std::string& dateString);
 }

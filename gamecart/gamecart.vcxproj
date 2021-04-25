@@ -158,6 +158,8 @@
     <ClCompile Include="src\database_schema.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\sqlite\sqlite3.c" />
+    <ClCompile Include="src\user.cpp" />
+    <ClCompile Include="src\user_manager.cpp" />
     <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +171,8 @@
     <ClInclude Include="src\database_schema.hpp" />
     <ClInclude Include="src\game.hpp" />
     <ClInclude Include="src\sqlite\sqlite3.h" />
+    <ClInclude Include="src\user.hpp" />
+    <ClInclude Include="src\user_manager.hpp" />
     <ClInclude Include="src\utils.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
