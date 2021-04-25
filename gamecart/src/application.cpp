@@ -101,6 +101,35 @@ void Application::removeFromCart(const std::string& gameName)
     }
 }
 
+void Application::buyCart()
+{
+    if (!userManager.isLoggedIn())
+    {
+        cout << "Please log in before attempting to buy the games in your cart\n\n";
+    }
+    else if (cart.size() < 1)
+    {
+        cout << "Your cart is empty\n\n";
+    }
+    else
+    {
+        for (const Game& game : cart.getGames())
+        {
+            // Decrement game copies if the number copies is greater than 0.
+            database
+                .prepare("UPDATE Games SET copies = copies - 1 WHERE id = ? AND copies > 0")
+                .bindInteger(game.uid)
+                .execute();
+
+            cout << game.name << " purchase successful!\n";
+        }
+
+        cout << "\n";
+
+        cart.clear();
+    }
+}
+
 void Application::attemptLogin(const LoginRequest& request)
 {
     try
@@ -229,6 +258,16 @@ void Application::bindCommands()
         {
             std::string game = getGameName(args);
             removeFromCart(game);
+        }
+    });
+
+    proc.bind(
+    {
+        "cart buy",
+        "Purchase the games in your cart",
+        [&](auto)
+        {
+            buyCart();
         }
     });
 

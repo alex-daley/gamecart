@@ -2,6 +2,11 @@
 #include "cart.hpp"
 #include "utils.hpp"
 
+const std::set<Game>& Cart::getGames() const
+{
+    return games;
+}
+
 bool Cart::contains(const Game& game) const
 {
     return games.find(game) != games.end();
@@ -20,6 +25,11 @@ void Cart::addGame(const Game& game)
 void Cart::removeGame(const Game& game)
 {
     games.erase(game);
+}
+
+void Cart::clear()
+{
+    games.clear();
 }
 
 std::string Cart::prettyPrint() const

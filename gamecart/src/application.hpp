@@ -20,6 +20,7 @@ private:
 
     void addToCart(const std::string& game);
     void removeFromCart(const std::string& game);
+    void buyCart();
 
     void attemptLogin(const LoginRequest& request);
     void logout();
