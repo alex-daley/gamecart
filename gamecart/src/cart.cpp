@@ -1,14 +1,39 @@
+#include <vector>
 #include "cart.hpp"
+#include "utils.hpp"
 
-const std::set<int>& Cart::game_ids() const {
-    return game_ids_;
+bool Cart::contains(const Game& game) const
+{
+    return games.find(game) != games.end();
 }
 
-void Cart::add(int game_id) {
-    game_ids_.insert(game_id);
+int Cart::size() const
+{
+    return games.size();
 }
 
-void Cart::remove(int game_id) {
-    game_ids_.erase(game_id);
+void Cart::addGame(const Game& game)
+{
+    games.insert(game);
 }
 
+void Cart::removeGame(const Game& game)
+{
+    games.erase(game);
+}
+
+std::string Cart::prettyPrint() const
+{
+    const std::vector<std::string> headings =
+    {
+        "Name", "Genre", "Age Rating", "Price", "Copies"
+    };
+
+    std::vector<std::vector<std::string>> rows;
+    for (const Game& game : games)
+    {
+        rows.push_back(game.toStringArray());
+    }
+
+    return Utils::formatTable(headings, rows);
+}

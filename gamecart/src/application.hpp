@@ -1,25 +1,28 @@
 #pragma once
+#include "cart.hpp"
 #include "command_processor.hpp"
 #include "database.hpp"
-#include "cart.hpp"
+#include <ostream>
 
-class Application {
+class Application
+{
 public:
-    Application(CommandProcessor* processor, Database* database);
+    Application(CommandProcessor& proc, Database& database, std::ostream& cout);
     void run();
 
 private:
-    CommandProcessor* processor;
-    Database* database;
+    std::ostream& cout;
+    CommandProcessor& proc;
+    Database& database;
     Cart cart;
 
-    void setup_commands();
+    void addToCart(const std::string& game);
+    void removeFromCart(const std::string& game);
 
-    void add_to_cart(std::string game_name);
-    void remove_from_cart(std::string game_name);
-
-    void print_command_help();
-    void print_welcome();
-    void print_games();
-    void print_cart();
+    void printCart();
+    void printHello();
+    void printHelp();
+    void printGames();
+    
+    void bindCommands();
 };

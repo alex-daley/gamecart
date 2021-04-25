@@ -1,26 +1,25 @@
 #pragma once
 #include <istream>
-#include <ostream>
+#include <vector>
+#include <string>
 #include "command.hpp"
 
-class CommandProcessor {
+class CommandProcessor
+{
 public:
-    CommandProcessor(std::istream& cin, std::ostream& cout);
     CommandProcessor();
 
-    bool is_running() const;
-    const std::vector<Command>& commands() const;
-    std::istream& cin() const;
-    std::ostream& cout() const;
-    
-    void bind(Command command);
+    const std::vector<Command>& getCommands() const;
+    bool getIsRunning() const;
+    void setCin(std::istream& cin);
+
+    void bind(const Command& command);
     void step();
 
 private:
-    std::string readln();
-    
-    bool is_running_ = true;
-    std::vector<Command> commands_;
-    std::istream* cin_;
-    std::ostream* cout_;
+    std::string readline();
+
+    bool isRunning = true;
+    std::vector<Command> commands;
+    std::istream* cin;
 };

@@ -1,14 +1,18 @@
 #pragma once
-#include <string>
 #include <set>
+#include "game.hpp"
 
-class Cart {
+class Cart
+{
 public:
-    const std::set<int>& game_ids() const;
+    bool contains(const Game& game) const;
+    int size() const;
 
-    void add(int game_id);
-    void remove(int game_id);
+    void addGame(const Game& game);
+    void removeGame(const Game& game);
+
+    std::string prettyPrint() const;
 
 private:
-    std::set<int> game_ids_;
+    std::set<Game> games;
 };

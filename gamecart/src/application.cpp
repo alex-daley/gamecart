@@ -1,181 +1,210 @@
-#include <functional>
-#include <string>
+#include <optional>
 #include <sstream>
-#include <iostream>
-#include <iomanip>
-
 #include "application.hpp"
-#include "command.hpp"
-#include "table.hpp"
+#include "utils.hpp"
 
-// Surround a string with the ANSI escape code for yellow.
-#define BOLD(str) "\u001b[33m" + std::string(str) + "\u001b[37m"
-
-Application::Application(CommandProcessor* processor, Database* database) : 
-    processor(processor), 
-    database(database) {
-    setup_commands();
-}
-
-void Application::run() {
-    print_welcome();
-    while (processor->is_running()) {
-        processor->step();
-    }
-}
-
-void Application::setup_commands() {
-    processor->bind({
-        "games",
-        "View all games available for purchase",
-        [&](auto args) { print_games(); }
-    });
-
-    processor->bind({
-        "cart show",
-        "View games in your cart",
-        [&](auto args) { print_cart(); }
-    });
-
-    processor->bind({
-        "cart add",
-        "Add a game to your cart (e.g. cart add factorio)",
-        [&](auto args) {
-            add_to_cart(args.empty() ? "" : args[0]); 
-        }
-    });
-
-    processor->bind({
-        "cart remove",
-        "Remove a game from your cart (e.g. cart remove Factorio)",
-        [&](auto args) { 
-            remove_from_cart(args.empty() ? "" : args[0]); 
-        }
-    });
-
-    processor->bind({
-        "q",
-        "Quit this utility",
-        [&](auto args) { 
-            processor->cout() << "Goodbye" << std::endl;
-        }
-    });
-
-    processor->bind({
-        "help",
-        "Output command documentation",
-        [&](auto args) { 
-            print_command_help(); 
-        }
-    });
-
-}
-
-void Application::add_to_cart(std::string game_name) {
-    auto rows = database->prepare("SELECT id FROM Games where name = ?")
-        .bind_text(game_name)
-        .execute();
-
-    if (rows) {
-        int id = rows.get_int(0);
-        cart.add(id);
-        processor->cout() << "Added game: " << game_name << " to cart.\n";
-    }
-    else {
-        std::stringstream info;
-        info << "Game: not found\n";
-        processor->cout() << info.str();
-    }
-}
-
-void Application::remove_from_cart(std::string game_name) {
-    auto rows = database->prepare("SELECT id FROM Games where name = ?")
-        .bind_text(game_name)
-        .execute();
-    
-    if (rows) {
-        int id = rows.get_int(0);
-        cart.remove(id);
-        processor->cout() << "Removed game: " << game_name << " from cart.\n";
-    }
-    else {
-        std::stringstream info;
-        info << "Game: not found\n";
-        processor->cout() << info.str();
-    }
-}
-
-void Application::print_command_help() {
-    std::stringstream help;
-    for (auto& command : processor->commands()) {
-        help << std::setw(25) << std::left;
-        help << BOLD(command.name);
-        help << command.description;
-        help << std::endl;
+namespace
+{
+    Game parseGame(RowReader& row)
+    {
+        Game game;
+        game.uid       = row.getInteger(0);
+        game.name      = row.getText   (1);
+        game.genre     = row.getText   (2);
+        game.ageRating = row.getInteger(3);
+        game.price     = row.getDouble (4);
+        game.copies    = row.getInteger(5);
+        return game;
     }
 
-    processor->cout() << help.str();
-}
-
-void Application::print_welcome() {
-    std::stringstream welcome;
-    welcome << "================================================================\n";
-    welcome << " Welcome to GAMECART command line utility!                      \n";
-    welcome << "================================================================\n";
-    welcome << "Type " BOLD("help") " to get started                          \n\n";
-    processor->cout() << welcome.str();
-}
-
-void Application::print_games() {
-    auto rows = database->prepare("SELECT * FROM Games").execute();
-    if (!rows) {
-        return;
-    }
-
-    Table table;
-    table.set_headings({ "Name", "Genre", "Price", "Age Rating", "Copies" });
-
-    do {
-        table.add_row({
-            rows.get_text(1),
-            rows.get_text(2),
-            std::to_string(rows.get_double(3)),
-            std::to_string(rows.get_int(4)),
-            std::to_string(rows.get_int(5)) 
-        });
-    }
-    while (rows.step());
-
-    processor->cout() << table.str(20);
-}
-
-void Application::print_cart() {
-    std::stringstream table;
-    table << std::setw(20) << std::left << "Cost (GBP)";
-    table << std::setw(20) << std::left << "Name";
-    table << std::endl;
-
-    double total_cost = 0.0;
-
-    for (auto& id : cart.game_ids()) {
-    
-        auto row = database->prepare("SELECT name, price FROM Games WHERE id = ?")
-            .bind_integer(id)
+    std::optional<Game> findGame(Database& database, const std::string& gameName)
+    {
+        RowReader row = database.prepare("SELECT * FROM Games where name = ?")
+            .bindText(gameName)
             .execute();
 
-        if (row) {
-            auto name = row.get_text(0);
-            auto cost = row.get_double(1);
-            
-            table << std::setw(20) << std::left << cost;
-            table << std::setw(20) << std::left << name;
-            table << std::endl;
-
-            total_cost += cost;
-        }
+        return row
+            ? std::optional<Game>(parseGame(row))
+            : std::nullopt;
     }
 
-    table << total_cost << std::endl;
+    std::vector<Game> findGames(Database& database)
+    {
+        RowReader row = database.prepare("SELECT * FROM Games")
+            .execute();
+        
+        if (!row)
+            return {};
 
-    processor->cout() << table.str();
+        std::vector<Game> games;
+        do
+        {
+            Game game = parseGame(row);
+            games.push_back(game);
+        }
+        while (row.step());
+
+        return games;
+    }
+}
+
+Application::Application(CommandProcessor& proc, Database& database, std::ostream& cout) : 
+    proc(proc), 
+    database(database), 
+    cout(cout)
+{
+    bindCommands();
+}
+
+void Application::run()
+{
+    printHello();
+
+    while (proc.getIsRunning())
+    {
+        proc.step();
+    }
+}
+
+void Application::addToCart(const std::string& gameName)
+{
+    std::optional<Game> game = findGame(database, gameName);
+
+    if (!game)
+    {
+        cout << "Game not found\n\n";
+    }
+    else
+    {
+        cart.addGame(*game);
+        cout << "Game added to cart\n\n";
+    }
+}
+
+void Application::removeFromCart(const std::string& gameName)
+{
+    std::optional<Game> game = findGame(database, gameName);
+
+    if (!game)
+    {
+        cout << "Game not found\n\n";
+    }
+    else if (!cart.contains(*game))
+    {
+        cout << "Game not in cart\n\n";
+    }
+    else
+    {
+        cart.removeGame(*game);
+        cout << "Game removed from cart\n\n";
+    }
+}
+
+void Application::printCart()
+{
+    cout << (cart.size() < 1 ? "No games in cart" : cart.prettyPrint()) << "\n\n";
+}
+
+void Application::printHello()
+{
+    std::stringstream s;
+    s << "================================================================\n";
+    s << " Welcome to the GAMECART command line utility!                  \n";
+    s << "================================================================\n";
+    s << "Type " << Utils::colour("help") << " to get started           \n\n";
+    cout << s.str();
+}
+
+void Application::printHelp()
+{
+    const std::vector<std::string> headings = 
+    {
+        "Command",  
+        "Description" 
+    };
+    
+    std::vector<std::vector<std::string>> rows;
+    for (const auto& command : proc.getCommands())
+    {
+        rows.push_back({ command.name, command.description });
+    }
+
+    cout << Utils::formatTable(headings, rows) << "\n\n";
+}
+
+void Application::printGames()
+{
+    std::vector<Game> games = findGames(database);
+    const std::vector<std::string> headings =
+    {
+        "Name", "Genre", "Age Rating", "Price", "Copies"
+    };
+
+    std::vector<std::vector<std::string>> rows;
+    for (const Game& game : games)
+    {
+        rows.push_back(game.toStringArray());
+    }
+
+    cout << Utils::formatTable(headings, rows) << "\n\n";
+}
+
+void Application::bindCommands()
+{
+    proc.bind(
+    {
+        "games",
+        "View all games available for purchase",
+        [&](auto args)
+        {
+            printGames(); 
+        }
+    });
+
+    proc.bind(
+    {
+        "cart show",
+        "View games in your cart",
+        [&](auto args) 
+        {
+            printCart(); 
+        }
+    });
+
+    auto getGameName = [](auto args)
+    {
+        return args.empty() ? "" : args[0];
+    };
+
+    proc.bind(
+    {
+        "cart add",
+        "Add a game to your cart (e.g. cart add Factorio)",
+        [&](auto args) 
+        { 
+            std::string game = getGameName(args);
+            addToCart(game);
+        }
+    });
+
+    proc.bind(
+    {
+        "cart remove",
+        "Remove a game to your cart (e.g. cart remove Factorio)",
+        [&](auto args) 
+        {
+            std::string game = getGameName(args);
+            removeFromCart(game);
+        }
+    });
+
+    proc.bind(
+    {
+        "help",
+        "View command documentation",
+        [&](auto args) 
+        {
+            printHelp();
+        }
+    });
 }

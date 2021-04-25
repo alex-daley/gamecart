@@ -2,89 +2,110 @@
 #include "sqlite/sqlite3.h"
 #include "database.hpp"
 
-RowReader::RowReader(sqlite3* db, sqlite3_stmt* stmt) : 
-    db_(db), stmt_(stmt) {
+RowReader::RowReader(sqlite3* db, sqlite3_stmt* stmt) :
+    database(db), stmt(stmt) 
+{
 }
 
-RowReader::~RowReader() {
-    if (stmt_)
-        sqlite3_finalize(stmt_);
+RowReader::~RowReader() 
+{
+    if (stmt)
+        sqlite3_finalize(stmt);
 }
 
-RowReader::operator bool() const {
-    return sqlite3_errcode(db_) == SQLITE_ROW;
+RowReader::operator bool() const 
+{
+    return sqlite3_errcode(database) == SQLITE_ROW;
 }
 
-bool RowReader::step() const {
-    return sqlite3_step(stmt_) == SQLITE_ROW;
+bool RowReader::step() const 
+{
+    return sqlite3_step(stmt) == SQLITE_ROW;
 }
 
-int RowReader::get_int(int column) const {
-    return sqlite3_column_int(stmt_, column);
+int RowReader::getInteger(int column) const 
+{
+    return sqlite3_column_int(stmt, column);
 }
 
-double RowReader::get_double(int column) const {
-    return sqlite3_column_double(stmt_, column);
+double RowReader::getDouble(int column) const 
+{
+    return sqlite3_column_double(stmt, column);
 }
 
-std::string RowReader::get_text(int column) const {
-    const unsigned char* text = sqlite3_column_text(stmt_, column);
+std::string RowReader::getText(int column) const 
+{
+    const unsigned char* text = sqlite3_column_text(stmt, column);
     return reinterpret_cast<const char*>(text);
 }
 
-Statement::Statement(sqlite3* db, std::string sql) {
-    db_ = db;
-    if (sqlite3_prepare_v2(db_, sql.c_str(), sql.length(), &stmt_, 0) != SQLITE_OK) {
-        std::string info = sqlite3_errmsg(db_);
+Statement::Statement(sqlite3* db, std::string sql) 
+{
+    database = db;
+    if (sqlite3_prepare_v2(database, sql.c_str(), sql.length(), &stmt, 0) != SQLITE_OK) 
+    {
+        std::string info = sqlite3_errmsg(database);
         throw std::runtime_error("Failed to prepare statement: " + info);
     }
 }
 
-Statement::~Statement() {
-    if (stmt_ && !defer_free_)
-        sqlite3_finalize(stmt_);
+Statement::~Statement() 
+{
+    if (stmt && !deferFree)
+    {
+        sqlite3_finalize(stmt);
+    }
 }
 
-Statement& Statement::bind_integer(int integer) {
-    sqlite3_bind_int(stmt_, ++bind_index_, integer);
+Statement& Statement::bindInteger(int integer) 
+{
+    sqlite3_bind_int(stmt, ++bindIndex, integer);
     return *this;
 }
 
-Statement& Statement::bind_double(double value) {
-    sqlite3_bind_double(stmt_, ++bind_index_, value);
+Statement& Statement::bindDouble(double value) 
+{
+    sqlite3_bind_double(stmt, ++bindIndex, value);
     return *this;
 }
 
-Statement& Statement::bind_text(std::string text) {
-    sqlite3_bind_text(stmt_, ++bind_index_, text.c_str(), text.size() + 1, SQLITE_TRANSIENT);
+Statement& Statement::bindText(std::string text) 
+{
+    sqlite3_bind_text(stmt, ++bindIndex, text.c_str(), text.size() + 1, SQLITE_TRANSIENT);
     return *this;
 }
 
-RowReader Statement::execute() {
-    int err = sqlite3_step(stmt_);
+RowReader Statement::execute() 
+{
+    int err = sqlite3_step(stmt);
     if (!(err == SQLITE_DONE || err == SQLITE_ROW))
     {
-        std::string info = sqlite3_errmsg(db_);
+        std::string info = sqlite3_errmsg(database);
         throw std::runtime_error("Failed to step prepared statement: " + info);
     }
 
-    defer_free_ = true;
-    return RowReader(db_, stmt_);
+    deferFree = true;
+    return RowReader(database, stmt);
 }
 
-Database::Database(std::string file) {
-    if (sqlite3_open("gamecart.db", &db_) != SQLITE_OK) {
-        std::string info = sqlite3_errmsg(db_);
+Database::Database(const std::string& file) 
+{
+    if (sqlite3_open("gamecart.db", &database) != SQLITE_OK) 
+    {
+        std::string info = sqlite3_errmsg(database);
         throw std::runtime_error("Failed to open database: " + info);
     }
 }
 
-Database::~Database() {
-    if (db_) {
-        sqlite3_close(db_);
+Database::~Database() 
+{
+    if (database) 
+    {
+        sqlite3_close(database);
     }
 }
 
-Statement Database::prepare(std::string sql) const {
-    return Statement(db_, sql);
+Statement Database::prepare(const std::string& sql) const 
+{
+    return Statement(database, sql);
 }
