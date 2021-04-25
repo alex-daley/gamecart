@@ -21,7 +21,10 @@ std::vector<std::string> Utils::split(
         }
     }
 
-    fragments.push_back(str);
+    if (str != "")
+    {
+        fragments.push_back(str);
+    }
 
     return fragments;
 }

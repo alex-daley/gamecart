@@ -28,7 +28,10 @@ private:
     void printCart();
     void printHello();
     void printHelp();
-    void printGames();
     
+    void printGames(const std::vector<Game>& games);
+    void printGames(const std::string& genre);
+    void printGames();
+
     void bindCommands();
 };

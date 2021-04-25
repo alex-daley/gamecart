@@ -19,7 +19,7 @@ namespace
 
     std::optional<Game> findGame(Database& database, const std::string& gameName)
     {
-        RowReader row = database.prepare("SELECT * FROM Games where name = ?")
+        RowReader row = database.prepare("SELECT * FROM Games Where name = ?")
             .bindText(gameName)
             .execute();
 
@@ -28,11 +28,8 @@ namespace
             : std::nullopt;
     }
 
-    std::vector<Game> findGames(Database& database)
+    std::vector<Game> findGames(RowReader& row)
     {
-        RowReader row = database.prepare("SELECT * FROM Games")
-            .execute();
-        
         if (!row)
             return {};
 
@@ -46,6 +43,21 @@ namespace
 
         return games;
     }
+
+    std::vector<Game> findGames(Database& database, const std::string& genre)
+    {
+        RowReader row = database.prepare("SELECT * FROM Games WHERE genre = ?")
+            .bindText(genre)
+            .execute();
+        return findGames(row);
+    }
+    std::vector<Game> findGames(Database& database)
+    {
+        RowReader row = database.prepare("SELECT * FROM Games")
+            .execute();
+        return findGames(row);
+    }
+
 }
 
 Application::Application(CommandProcessor& proc, Database& database, std::ostream& cout) : 
@@ -196,9 +208,8 @@ void Application::printHelp()
     cout << Utils::formatTable(headings, rows) << "\n\n";
 }
 
-void Application::printGames()
+void Application::printGames(const std::vector<Game>& games)
 {
-    std::vector<Game> games = findGames(database);
     const std::vector<std::string> headings =
     {
         "Name", "Genre", "Age Rating", "Price", "Copies"
@@ -213,15 +224,35 @@ void Application::printGames()
     cout << Utils::formatTable(headings, rows) << "\n\n";
 }
 
+void Application::printGames(const std::string& genre)
+{
+    std::vector<Game> games = findGames(database, genre);
+    printGames(games);
+}
+
+void Application::printGames()
+{
+    std::vector<Game> games = findGames(database);
+    printGames(games);
+}
+
 void Application::bindCommands()
 {
     proc.bind(
     {
         "games",
-        "View all games available for purchase",
+        "View all games. Append the name of a genre to filter (e.g. games Action)",
         [&](auto args)
         {
-            printGames(); 
+            if (args.size() > 0)
+            {
+                printGames(args[0]);
+            }
+            else
+            {
+                printGames();
+            }
+          
         }
     });
 
