@@ -158,6 +158,7 @@ void Application::logout()
         userManager.logout();
         if (!userManager.isLoggedIn())
         {
+            cart.clear();
             cout << "You have been logged out\n\n";
         }
     }
