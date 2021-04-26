@@ -1,6 +1,20 @@
 #include <sstream>
 #include <iomanip>
-#include "utils.hpp"
+#include <charconv>
+#include "utils.h"
+
+namespace
+{
+    template <typename T>
+    std::optional<T> parseNumber(const std::string& input) 
+    {
+        T result = 0;
+        auto [ptr, error] = std::from_chars(input.data(), input.data() + input.size(), result);
+        return error == std::errc() && *ptr == '\0'
+            ? std::optional<T>(result)
+            : std::nullopt;
+    }
+}
 
 std::vector<std::string> Utils::split(
     const std::string& text, 
@@ -46,7 +60,7 @@ std::string Utils::formatTable(
     {
         outputCell("[" + cell + "]");
     }
-    
+
     // Output rows.
     for (const auto& row : rows)
     {
@@ -81,4 +95,9 @@ std::string Utils::toDecimalPlaces(double value, int places)
     std::stringstream s;
     s << std::fixed << std::setprecision(places) << value;
     return s.str();
+}
+
+std::optional<int> Utils::parseInt(const std::string& str)
+{
+    return parseNumber<int>(str);
 }

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <regex>
-#include "command_processor.hpp"
-#include "utils.hpp"
+#include "command_processor.h"
+#include "utils.h"
 
 CommandProcessor::CommandProcessor() 
 {
@@ -50,7 +50,7 @@ void CommandProcessor::step()
         }
     }
 
-    std::cerr << "Command not found\n\n";
+    std::cerr << "Command not found\n";
 }
 
 std::string CommandProcessor::readline()

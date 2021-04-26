@@ -1,53 +1,62 @@
-#include <vector>
-#include "cart.hpp"
-#include "utils.hpp"
+#include <stdexcept>
+#include <cmath>
+#include "cart.h"
 
-const std::set<Game>& Cart::getGames() const
+int& Cart::operator[](GameID id)
 {
-    return games;
+    return orderCount[id];
 }
 
-bool Cart::contains(const Game& game) const
+const std::map<Cart::GameID, int>& Cart::getOrders() const
 {
-    return games.find(game) != games.end();
+    return orderCount;
 }
 
-int Cart::size() const
+int Cart::getCount(GameID uid) const
 {
-    return games.size();
+    try
+    {
+        return orderCount.at(uid);
+    }
+    catch (...)
+    {
+        return 0;
+    }
 }
 
-void Cart::addGame(const Game& game)
+bool Cart::getIsEmpty() const
 {
-    games.insert(game);
+    return orderCount.size() == 0;
 }
 
-void Cart::removeGame(const Game& game)
+void Cart::addOrder(GameID id)
 {
-    games.erase(game);
+    orderCount[id]++;
+}
+
+void Cart::addOrder(GameID id, int copies)
+{
+    for (int i = 0; i < copies; i++)
+        addOrder(id);
+}
+
+void Cart::removeOrder(GameID id)
+{
+    orderCount[id] = std::max(0, orderCount[id] - 1);
+}
+
+void Cart::removeOrder(GameID id, int copies)
+{
+    for (int i = 0; i < copies; i++)
+        removeOrder(id);
+}
+
+void Cart::removeAt(GameID id)
+{
+    orderCount.erase(id);
 }
 
 void Cart::clear()
 {
-    games.clear();
-}
-
-std::string Cart::prettyPrint() const
-{
-    const std::vector<std::string> headings =
-    {
-        "Name", "Price"
-    };
-
-    std::vector<std::vector<std::string>> rows;
-    for (const Game& game : games)
-    {
-        rows.push_back(
-        {
-            game.name,
-            Utils::toDecimalPlaces(game.price, 2)
-        });
-    }
-
-    return Utils::formatTable(headings, rows);
+    orderCount.clear();
 }

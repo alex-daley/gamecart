@@ -1,341 +1,301 @@
-#include <optional>
 #include <sstream>
-#include "application.hpp"
-#include "utils.hpp"
+#include <iostream>
+#include <stdexcept>
+#include "application.h"
+#include "utils.h"
 
 namespace
 {
-    Game parseGame(RowReader& row)
+    using Row  = std::vector<std::string>;
+    using Rows = std::vector<Row>;
+    
+    const std::vector<std::string> gameHeadings = 
+    { 
+        "name", "genre", "age rating", "price", "copies" 
+    };
+
+    Row toRow(const Game& game)
     {
-        Game game;
-        game.uid       = row.getInteger(0);
-        game.name      = row.getText   (1);
-        game.genre     = row.getText   (2);
-        game.ageRating = row.getInteger(3);
-        game.price     = row.getDouble (4);
-        game.copies    = row.getInteger(5);
-        return game;
-    }
-
-    std::optional<Game> findGame(Database& database, const std::string& gameName)
-    {
-        RowReader row = database.prepare("SELECT * FROM Games Where name = ?")
-            .bindText(gameName)
-            .execute();
-
-        return row
-            ? std::optional<Game>(parseGame(row))
-            : std::nullopt;
-    }
-
-    std::vector<Game> findGames(RowReader& row)
-    {
-        if (!row)
-            return {};
-
-        std::vector<Game> games;
-        do
+        return 
         {
-            Game game = parseGame(row);
-            games.push_back(game);
-        }
-        while (row.step());
-
-        return games;
+            game.name,
+            game.genre,
+            std::to_string(game.ageRating) + "+",
+            Utils::toDecimalPlaces(game.price, 2),
+            std::to_string(game.copies)
+        };
     }
-
-    std::vector<Game> findGames(Database& database, const std::string& genre)
-    {
-        RowReader row = database.prepare("SELECT * FROM Games WHERE genre = ?")
-            .bindText(genre)
-            .execute();
-        return findGames(row);
-    }
-    std::vector<Game> findGames(Database& database)
-    {
-        RowReader row = database.prepare("SELECT * FROM Games")
-            .execute();
-        return findGames(row);
-    }
-
 }
 
-Application::Application(CommandProcessor& proc, Database& database, std::ostream& cout) : 
-    proc(proc), 
-    database(database), 
-    userManager(database),
-    cout(cout)
+Application::Application(CommandProcessor* proc, IGameService* games, IUserService* users, std::ostream& cout) :
+    proc(proc),
+    games(games),
+    users(users),
+    cout(&cout)
 {
     bindCommands();
 }
 
+Application::Application(CommandProcessor* proc, IGameService* games, IUserService* users) :
+    Application(proc, games, users, std::cout)
+{
+}
+
 void Application::run()
 {
-    printHello();
+    std::stringstream s;
+    s << "====================================================================\n";
+    s << "          Welcome to the GAMECART command line utility!             \n";
+    s << "====================================================================\n";
+    s << "Type " << Utils::colour("help") << " to get started\n";
+    *cout << s.str();
 
-    while (proc.getIsRunning())
+    while (proc->getIsRunning())
     {
-        proc.step();
+        *cout << "\n";
+        
+        // Listen for new input commands.
+        proc->step();
     }
 }
 
-void Application::addToCart(const std::string& gameName)
+bool Application::isLoggedIn() const
 {
-    std::optional<Game> game = findGame(database, gameName);
-
-    if (!game)
-    {
-        cout << "Game not found\n\n";
-    }
-    else
-    {
-        cart.addGame(*game);
-        cout << "Game added to cart\n\n";
-    }
+    return (bool)user;
 }
 
-void Application::removeFromCart(const std::string& gameName)
+void Application::login(std::string username, std::string password)
 {
-    std::optional<Game> game = findGame(database, gameName);
-
-    if (!game)
+    if (isLoggedIn())
     {
-        cout << "Game not found\n\n";
+        *cout << "You are already logged in\n";
+        return;
     }
-    else if (!cart.contains(*game))
-    {
-        cout << "Game not in cart\n\n";
-    }
-    else
-    {
-        cart.removeGame(*game);
-        cout << "Game removed from cart\n\n";
-    }
-}
 
-void Application::buyCart()
-{
-    if (!userManager.isLoggedIn())
-    {
-        cout << "Please log in before attempting to buy the games in your cart\n\n";
-    }
-    else if (cart.size() < 1)
-    {
-        cout << "Your cart is empty\n\n";
-    }
-    else
-    {
-        for (const Game& game : cart.getGames())
-        {
-            // Decrement game copies if the number copies is greater than 0.
-            database
-                .prepare("UPDATE Games SET copies = copies - 1 WHERE id = ? AND copies > 0")
-                .bindInteger(game.uid)
-                .execute();
-
-            cout << game.name << " purchase successful!\n";
-        }
-
-        cout << "\n";
-
-        cart.clear();
-    }
-}
-
-void Application::attemptLogin(const LoginRequest& request)
-{
     try
     {
-        userManager.login(request);
-        
-        if (userManager.isLoggedIn())
-        {
-            cout << "Logged in as user: " << request.username << "\n\n";
-        }
+        this->user = users->login({ username, password });
+        *cout << "Logged in as: " << username;
     }
-    catch (const std::runtime_error& err)
+    catch (const std::runtime_error& e)
     {
-        cout << "Login failed: " << err.what() << "\n\n";
+        *cout << "Failed to log in: " << e.what();
     }
 }
 
 void Application::logout()
 {
-    if (!userManager.isLoggedIn())
+    if (!isLoggedIn())
     {
-        cout << "You are not currently logged in\n\n";
+        *cout << "You are not logged in\n";
+    }
+    else if (cart.getIsEmpty())
+    {
+        *cout << "Your cart is not empty.\nPlease purchase or clear you cart before logging out\n";
     }
     else
     {
-        userManager.logout();
-        if (!userManager.isLoggedIn())
+        user = std::nullopt;
+        *cout << "User logged out\n";
+    }
+}
+
+void Application::logHelp() const
+{
+    Rows rows;
+    for (auto& [name, help, _] : proc->getCommands())
+        rows.push_back({ Utils::colour(name), help });
+    
+    auto table = Utils::formatTable({}, rows);
+    *cout << table << "\n";
+}
+
+void Application::logGames() const
+{
+    logGames("*");
+}
+
+void Application::logGames(std::string genre) const
+{
+    auto filteredGames = (genre == "*") 
+        ? games->findAll() 
+        : games->findAll(genre);
+
+    Rows rows;
+    for (const auto& game : filteredGames)
+        rows.push_back(toRow(game));
+
+    auto table = Utils::formatTable(gameHeadings, rows);
+    *cout << table << "\n";
+}
+
+void Application::logCart() const
+{
+    if (cart.getIsEmpty())
+    {
+        *cout << "There are no games in your cart.\n";
+        return;
+    }
+
+    Rows rows;
+    for (const auto& [gameID, quantity] : cart.getOrders())
+    {
+        Game game = games->find(gameID);
+        rows.push_back({ 
+            game.name, 
+            Utils::toDecimalPlaces(game.price * quantity, 2), 
+            std::to_string(quantity)
+        });
+    }
+
+    auto table = Utils::formatTable({ "Name", "Cost", "Quantity" }, rows);
+    *cout << table << "\n";
+}
+
+void Application::addToCart(std::string gameName)
+{
+    addToCart(gameName, 1);
+}
+
+void Application::addToCart(std::string gameName, int quantity)
+{
+    // So we can rollback if an insertion fails.
+    [[maybe_unused]]
+    Cart prevCart = cart; 
+
+    try
+    {
+        Game game = games->find(gameName);
+        int copiesInCart = cart.getCount(game.uid);
+
+        if (game.copies - copiesInCart < quantity)
         {
-            cart.clear();
-            cout << "You have been logged out\n\n";
+            *cout << "There are only " << game.copies - copiesInCart << " copies left in stock; please revise your order quantity\n";
+        }
+        else
+        {
+            cart.addOrder(game.uid, quantity);
+            *cout << "Added " << game.name << " (x" << quantity << ") to cart\n";
         }
     }
-}
-
-void Application::printCart()
-{
-    cout << (cart.size() < 1 ? "No games in cart" : cart.prettyPrint()) << "\n\n";
-}
-
-void Application::printHello()
-{
-    std::stringstream s;
-    s << "================================================================\n";
-    s << " Welcome to the GAMECART command line utility!                  \n";
-    s << "================================================================\n";
-    s << "Type " << Utils::colour("help") << " to get started           \n\n";
-    cout << s.str();
-}
-
-void Application::printHelp()
-{
-    const std::vector<std::string> headings = 
+    catch (const std::runtime_error* e)
     {
-        "Command",  
-        "Description" 
-    };
-    
-    std::vector<std::vector<std::string>> rows;
-    for (const auto& command : proc.getCommands())
-    {
-        rows.push_back({ command.name, command.description });
+        *cout << "Could not add order to cart: " << e->what() << "\n";
+        cart = prevCart;
     }
-
-    cout << Utils::formatTable(headings, rows) << "\n\n";
 }
 
-void Application::printGames(const std::vector<Game>& games)
+void Application::removeFromCart(std::string gameName)
 {
-    const std::vector<std::string> headings =
+    try
     {
-        "Name", "Genre", "Age Rating", "Price", "Copies"
-    };
+        Game game = games->find(gameName);
 
-    std::vector<std::vector<std::string>> rows;
-    for (const Game& game : games)
-    {
-        rows.push_back(game.toStringArray());
+        if (cart[game.uid] == 0)
+        {
+            *cout << "Game is not in you cart\n";
+        }
+        else
+        {
+            cart.removeAt(game.uid);
+            *cout << "Removed game from your cart\n";
+        }
     }
-
-    cout << Utils::formatTable(headings, rows) << "\n\n";
-}
-
-void Application::printGames(const std::string& genre)
-{
-    std::vector<Game> games = findGames(database, genre);
-    printGames(games);
-}
-
-void Application::printGames()
-{
-    std::vector<Game> games = findGames(database);
-    printGames(games);
+    catch (const std::runtime_error& e)
+    {
+        *cout << "Game not found\n";
+    }
 }
 
 void Application::bindCommands()
 {
-    proc.bind(
-    {
+    proc->bind({
         "games",
-        "View all games. Append the name of a genre to filter (e.g. games Action)",
-        [&](auto args)
-        {
+        "Display a list of games available to purchase. Optionally filter by genre",
+        [this](auto args)  {
             if (args.size() > 0)
+                logGames(args[0]);
+            else
+                logGames();
+        }
+    });
+
+    proc->bind({
+        "cart add",
+        "Add a game to your cart. Optionally specify a quantity",
+        [this](auto args) 
+        {
+            if (args.size() < 1)
             {
-                printGames(args[0]);
+                *cout << "Please specify the name of the game you would like to purchase\n";
             }
             else
             {
-                printGames();
+                std::string game = args[0];
+                if (args.size() == 2)
+                {
+                    std::optional<int> quantity = Utils::parseInt(args[1]);
+                    if (!quantity)
+                        *cout << "Invalid quantity value\n";
+                    else
+                        addToCart(game, *quantity);
+                }
+                else
+                {
+                    addToCart(game);
+                }
             }
-          
         }
     });
 
-    proc.bind(
-    {
+    proc->bind({
+        "cart rm",
+        "Remove a game from your cart",
+        [this](auto args)
+        {
+            if (args.size() < 1)
+                *cout << "Please specify the name of the game you want to remove\n";
+            else
+                removeFromCart(args[0]);
+        }
+    });
+
+    proc->bind({
         "cart show",
-        "View games in your cart",
-        [&](auto args) 
+        "Show games currently in your cart",
+        [this](auto args)
         {
-            printCart(); 
+            logCart();
         }
     });
 
-    auto getGameName = [](auto args)
-    {
-        return args.empty() ? "" : args[0];
-    };
-
-    proc.bind(
-    {
-        "cart add",
-        "Add a game to your cart (e.g. cart add Factorio)",
-        [&](auto args) 
-        { 
-            std::string game = getGameName(args);
-            addToCart(game);
-        }
-    });
-
-    proc.bind(
-    {
-        "cart remove",
-        "Remove a game to your cart (e.g. cart remove Factorio)",
-        [&](auto args) 
-        {
-            std::string game = getGameName(args);
-            removeFromCart(game);
-        }
-    });
-
-    proc.bind(
-    {
-        "cart buy",
-        "Purchase the games in your cart",
-        [&](auto)
-        {
-            buyCart();
-        }
-    });
-
-    proc.bind(
-    {
+    proc->bind({
         "login",
-        "login with a username and password (e.g. login admin password123)",
-        [&](auto args)
+        "Log in with the supplied username and password",
+        [this](auto args) 
         {
-            if (args.size() < 2)
-            {
-                cout << "Please provide a username and password\n\n";
-                return;
-            }
-
-            attemptLogin({ args[0], args[1] });
+            if (args.size() != 2)
+                *cout << "please provide a username and password";
+            else
+                login(args[0], args[1]);
         }
     });
 
-    proc.bind(
-    {
+    proc->bind({
         "logout",
-        "logout the current user",
-        [&](auto args)
+        "Log out the current user",
+        [this](auto args) 
         {
-            logout();
+            logout(); 
         }
     });
 
-    proc.bind(
-    {
+    proc->bind({
         "help",
-        "View command documentation",
-        [&](auto args) 
+        "Show command line information",
+        [this](auto args)
         {
-            printHelp();
+            logHelp(); 
         }
     });
 }

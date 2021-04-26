@@ -1,6 +1,6 @@
 #include <stdexcept>
 #include "sqlite/sqlite3.h"
-#include "database.hpp"
+#include "database.h"
 
 RowReader::RowReader(sqlite3* db, sqlite3_stmt* stmt) :
     database(db), stmt(stmt) 

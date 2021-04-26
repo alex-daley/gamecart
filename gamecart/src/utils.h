@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <ctime>
+#include <optional>
 
 namespace Utils
 {
@@ -24,4 +25,7 @@ namespace Utils
     std::string toDecimalPlaces(
         double value, 
         int places);
+
+    std::optional<int> parseInt(
+        const std::string& str);
 }

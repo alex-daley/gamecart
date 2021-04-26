@@ -1,10 +1,9 @@
-#include "database_schema.hpp"
-#include "database.hpp"
+#include "schema.h"
 
 static constexpr auto GAMES_TABLE = R"(
 CREATE TABLE IF NOT EXISTS Games 
 (
-    id         INTEGER PRIMARY KEY,
+    uid        INTEGER PRIMARY KEY,
     name       TEXT NOT NULL UNIQUE,    
     genre      TEXT NOT NULL,
     age_rating INTEGER NOT NULL,
@@ -17,7 +16,7 @@ CREATE TABLE IF NOT EXISTS Games
 static constexpr auto USERS_TABLE = R"(
 CREATE TABLE IF NOT EXISTS Users
 (
-    id                INTEGER PRIMARY KEY,
+    uid               INTEGER PRIMARY KEY,
     username          TEXT NOT NULL UNIQUE,
     insecure_password TEXT NOT NULL,
     date_of_birth     TEXT NOT NULL,
@@ -66,7 +65,7 @@ namespace
     }
 }
 
-void DatabaseSchema::createTables(Database& database) 
+void Schema::createTables(Database& database)
 {
     database.prepare(GAMES_TABLE).execute();
 

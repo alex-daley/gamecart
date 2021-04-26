@@ -1,18 +1,24 @@
-#include <iostream>
-
-#include "application.hpp"
-#include "command_processor.hpp"
-#include "database.hpp"
-#include "database_schema.hpp"
+#include "application.h"
+#include "command_processor.h"
+#include "database.h"
+#include "schema.h"
 
 int main()
 {
-    CommandProcessor proc;
-    Database database("gamecart.db");
-    DatabaseSchema::createTables(database);
+    auto database    = new Database("gamecart.db");
+    auto userService = new UserService(database);
+    auto gameService = new GameService(database); 
+    auto proc        = new CommandProcessor();
+    auto application = new Application(proc, gameService, userService);
+    
+    Schema::createTables(*database);
+    application->run();
 
-    Application app(proc, database, std::cout);
-    app.run();
+    delete application;
+    delete proc;
+    delete gameService;
+    delete userService;
+    delete database;
 
     return 0;
 }

@@ -94,7 +94,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ADD_SAMPLE_DATA;ADD_SAMPLE_DATAWIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -109,7 +109,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ADD_SAMPLE_DATA;ADD_SAMPLE_DATAWIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -124,7 +124,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ADD_SAMPLE_DATA;ADD_SAMPLE_DATA_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -139,7 +139,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ADD_SAMPLE_DATA;ADD_SAMPLE_DATANDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -155,25 +155,23 @@
     <ClCompile Include="src\cart.cpp" />
     <ClCompile Include="src\command_processor.cpp" />
     <ClCompile Include="src\database.cpp" />
-    <ClCompile Include="src\database_schema.cpp" />
+    <ClCompile Include="src\schema.cpp" />
+    <ClCompile Include="src\game_service.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\sqlite\sqlite3.c" />
-    <ClCompile Include="src\user.cpp" />
-    <ClCompile Include="src\user_manager.cpp" />
+    <ClCompile Include="src\user_service.cpp" />
     <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\application.hpp" />
-    <ClInclude Include="src\cart.hpp" />
-    <ClInclude Include="src\command.hpp" />
-    <ClInclude Include="src\command_processor.hpp" />
-    <ClInclude Include="src\database.hpp" />
-    <ClInclude Include="src\database_schema.hpp" />
-    <ClInclude Include="src\game.hpp" />
+    <ClInclude Include="src\application.h" />
+    <ClInclude Include="src\cart.h" />
+    <ClInclude Include="src\command_processor.h" />
+    <ClInclude Include="src\database.h" />
+    <ClInclude Include="src\schema.h" />
+    <ClInclude Include="src\game_service.h" />
     <ClInclude Include="src\sqlite\sqlite3.h" />
-    <ClInclude Include="src\user.hpp" />
-    <ClInclude Include="src\user_manager.hpp" />
-    <ClInclude Include="src\utils.hpp" />
+    <ClInclude Include="src\user_service.h" />
+    <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
