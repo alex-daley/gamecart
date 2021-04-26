@@ -27,6 +27,7 @@ private:
     void addToCart(std::string gameName);
     void addToCart(std::string gameName, int quantity);
     void removeFromCart(std::string gameName);
+    void buyGamesInCart();
 
     void bindCommands();
 

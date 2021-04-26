@@ -45,7 +45,7 @@ void Application::run()
 {
     std::stringstream s;
     s << "====================================================================\n";
-    s << "          Welcome to the GAMECART command line utility!             \n";
+    s << " Welcome to the GAMECART command line utility!             \n";
     s << "====================================================================\n";
     s << "Type " << Utils::colour("help") << " to get started\n";
     *cout << s.str();
@@ -75,11 +75,11 @@ void Application::login(std::string username, std::string password)
     try
     {
         this->user = users->login({ username, password });
-        *cout << "Logged in as: " << username;
+        *cout << "Logged in as: " << username << "\n";
     }
     catch (const std::runtime_error& e)
     {
-        *cout << "Failed to log in: " << e.what();
+        *cout << "Failed to log in: " << e.what() << "\n";
     }
 }
 
@@ -137,19 +137,27 @@ void Application::logCart() const
         return;
     }
 
+    double totalCost = 0.0;
+
     Rows rows;
     for (const auto& [gameID, quantity] : cart.getOrders())
     {
         Game game = games->find(gameID);
+        double cost = game.price * quantity;
+        totalCost += cost;
+
         rows.push_back({ 
             game.name, 
-            Utils::toDecimalPlaces(game.price * quantity, 2), 
+            Utils::toDecimalPlaces(cost, 2),
             std::to_string(quantity)
         });
     }
 
     auto table = Utils::formatTable({ "Name", "Cost", "Quantity" }, rows);
     *cout << table << "\n";
+
+    *cout << "Total cost: " << Utils::toDecimalPlaces(totalCost, 2) << "\n";
+    *cout << "Total cost: " << Utils::toDecimalPlaces(totalCost * 0.8, 2) << " (before 20% VAT)\n";
 }
 
 void Application::addToCart(std::string gameName)
@@ -201,10 +209,38 @@ void Application::removeFromCart(std::string gameName)
             *cout << "Removed game from your cart\n";
         }
     }
-    catch (const std::runtime_error& e)
+    catch (...)
     {
         *cout << "Game not found\n";
     }
+}
+
+void Application::buyGamesInCart()
+{
+    if (!isLoggedIn())
+    {
+        *cout << "Please log in before buying the items in your cart\n";
+        return;
+    }
+
+    logCart();
+    *cout << "Enter y to confirm order\n";
+
+    std::string input;
+    std::cin >> input;
+    if (!(input == "y" || input == "Y"))
+    {
+        *cout << "Order cancelled\n";
+        return;
+    }
+
+    for (auto& [gameID, quantity] : cart.getOrders())
+    {
+        for (int i = 0; i < quantity; i++)
+            games->decrementStock(gameID);
+    }
+
+    cart.clear();
 }
 
 void Application::bindCommands()
@@ -257,6 +293,15 @@ void Application::bindCommands()
                 *cout << "Please specify the name of the game you want to remove\n";
             else
                 removeFromCart(args[0]);
+        }
+    });
+
+    proc->bind({
+        "cart buy",
+        "Buy all the games in your cart",
+        [this](auto args)
+        {
+            buyGamesInCart();
         }
     });
 

@@ -51,7 +51,7 @@ void UserService::insert(CreateUserInfo user)
 
 User UserService::login(LoginInfo info)
 {
-    auto row = database->prepare("SELECT id, insecure_password, date_of_birth, email FROM Users WHERE username = ?")
+    auto row = database->prepare("SELECT uid, insecure_password, date_of_birth, email FROM Users WHERE username = ?")
         .bindText(info.username)
         .execute();
 

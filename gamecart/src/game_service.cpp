@@ -50,20 +50,20 @@ void GameService::insert(const Game& game)
         .execute();
 }
 
-void GameService::update(const Game& game)
+void GameService::decrementStock(int uid)
 {
-    static constexpr auto UPDATE_COPIES = R"(
+    static constexpr auto DECREMENT = R"(
     UPDATE 
         Games 
     SET 
         copies = copies - 1 
     WHERE 
-        name = ? 
+        uid = ? 
         AND copies > 0
     )";
 
-    database->prepare(UPDATE_COPIES)
-        .bindText(game.name)
+    database->prepare(DECREMENT)
+        .bindInteger(uid)
         .execute();
 }
 

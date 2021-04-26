@@ -19,7 +19,7 @@ public:
     virtual ~IGameService() {}
     
     virtual void insert(const Game& game) = 0;
-    virtual void update(const Game& game) = 0;
+    virtual void decrementStock(int uid) = 0;
     
     virtual Game find(std::string name) const = 0;
     virtual Game find(int uid) const = 0;
@@ -34,7 +34,7 @@ public:
     GameService(Database* database);
 
     void insert(const Game& game) override;
-    void update(const Game& game) override;
+    void decrementStock(int uid) override;
 
     Game find(std::string name) const override;
     Game find(int uid) const override;
