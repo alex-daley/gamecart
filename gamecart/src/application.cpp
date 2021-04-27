@@ -27,17 +27,16 @@ namespace
     }
 }
 
-Application::Application(CommandProcessor* proc, IGameService* games, IUserService* users, std::ostream& cout) :
-    proc(proc),
-    games(games),
-    users(users),
+Application::Application(CommandProcessor* commandProcessor, Services services, std::ostream& cout) :
+    commandProcessor(commandProcessor),
+    services(services),
     cout(&cout)
 {
     bindCommands();
 }
 
-Application::Application(CommandProcessor* proc, IGameService* games, IUserService* users) :
-    Application(proc, games, users, std::cout)
+Application::Application(CommandProcessor* commandProcessor, Services services) :
+    Application(commandProcessor, services, std::cout)
 {
 }
 
@@ -51,12 +50,12 @@ void Application::run()
     s << "See use_guide.docx for comprehensive documentation and examples.    \n";
     *cout << s.str();
 
-    while (proc->getIsRunning())
+    while (commandProcessor->getIsRunning())
     {
         *cout << "\n";
         
         // Listen for new input commands.
-        proc->step();
+        commandProcessor->step();
     }
 }
 
@@ -75,7 +74,7 @@ void Application::login(std::string username, std::string password)
 
     try
     {
-        this->user = users->login({ username, password });
+        this->user = services.users->login({ username, password });
         *cout << "Logged in as: " << username << "\n";
     }
     catch (const std::runtime_error& e)
@@ -104,7 +103,7 @@ void Application::logout()
 void Application::logHelp() const
 {
     Rows rows;
-    for (auto& [name, help, _] : proc->getCommands())
+    for (auto& [name, help, _] : commandProcessor->getCommands())
         rows.push_back({ Utils::colour(name), help });
     
     auto table = Utils::formatTable({}, rows);
@@ -119,8 +118,8 @@ void Application::logGames() const
 void Application::logGames(std::string genre) const
 {
     auto filteredGames = (genre == "*") 
-        ? games->findAll() 
-        : games->findAll(genre);
+        ? services.games->findAll()
+        : services.games->findAll(genre);
 
     Rows rows;
     for (const auto& game : filteredGames)
@@ -143,7 +142,7 @@ void Application::logCart() const
     Rows rows;
     for (const auto& [gameID, quantity] : cart.getOrders())
     {
-        Game game = games->find(gameID);
+        Game game = services.games->find(gameID);
         double cost = game.price * quantity;
         totalCost += cost;
 
@@ -161,6 +160,43 @@ void Application::logCart() const
     *cout << "Total cost: " << Utils::toDecimalPlaces(totalCost * 0.8, 2) << " (before 20% VAT)\n";
 }
 
+void Application::logSales() const
+{
+    auto allMetrics = services.orders->getOrderMetrics();
+ 
+    Rows rows;
+    for (const auto& [name, revenue, sales] : allMetrics)
+    {
+        rows.push_back({
+            name,
+            std::to_string(sales),
+            Utils::toDecimalPlaces(revenue, 2)
+        });
+    }
+
+    auto table = Utils::formatTable({ "Name", "Sales", "Revenue" }, rows);
+    *cout << table;
+}
+
+void Application::createAccount(std::string username, std::string password, std::string dateOfBirth, std::string email)
+{
+    try
+    {
+        CreateUserInfo info;
+        info.username = username;
+        info.insecurePassword = password;
+        info.dateOfBirth = dateOfBirth;
+        info.email = email;
+        services.users->insert(info);
+
+        *cout << "Account: " << info.username << " created!\n";
+    }
+    catch (const std::runtime_error& e)
+    {
+        *cout << "Failed to create account: " << e.what() << "\n";
+    }
+}
+
 void Application::addToCart(std::string gameName)
 {
     addToCart(gameName, 1);
@@ -174,7 +210,7 @@ void Application::addToCart(std::string gameName, int quantity)
 
     try
     {
-        Game game = games->find(gameName);
+        Game game = services.games->find(gameName);
         int copiesInCart = cart.getCount(game.uid);
 
         if (game.copies - copiesInCart < quantity)
@@ -198,7 +234,7 @@ void Application::removeFromCart(std::string gameName)
 {
     try
     {
-        Game game = games->find(gameName);
+        Game game = services.games->find(gameName);
 
         if (cart[game.uid] == 0)
         {
@@ -242,7 +278,15 @@ void Application::buyGamesInCart()
     for (auto& [gameID, quantity] : cart.getOrders())
     {
         for (int i = 0; i < quantity; i++)
-            games->decrementStock(gameID);
+        {
+            services.games->decrementStock(gameID);
+            
+            Order order = { 0 };
+            order.gameID = gameID;
+            order.userID = user->uid;
+            order.cost = services.games->find(gameID).price;
+            services.orders->insert(order);
+        }
     }
 
     *cout << "Order confirmed!\n";
@@ -251,7 +295,7 @@ void Application::buyGamesInCart()
 
 void Application::bindCommands()
 {
-    proc->bind({
+    commandProcessor->bind({
         "games",
         "Display a list of games available to purchase. Optionally filter by genre",
         [this](auto args)  {
@@ -262,7 +306,7 @@ void Application::bindCommands()
         }
     });
 
-    proc->bind({
+    commandProcessor->bind({
         "cart add",
         "Add a game to your cart. Optionally specify a quantity",
         [this](auto args) 
@@ -290,7 +334,7 @@ void Application::bindCommands()
         }
     });
 
-    proc->bind({
+    commandProcessor->bind({
         "cart rm",
         "Remove a game from your cart",
         [this](auto args)
@@ -302,7 +346,7 @@ void Application::bindCommands()
         }
     });
 
-    proc->bind({
+    commandProcessor->bind({
         "cart buy",
         "Buy all the games in your cart",
         [this](auto args)
@@ -311,7 +355,7 @@ void Application::bindCommands()
         }
     });
 
-    proc->bind({
+    commandProcessor->bind({
         "cart show",
         "Show games currently in your cart",
         [this](auto args)
@@ -320,7 +364,7 @@ void Application::bindCommands()
         }
     });
 
-    proc->bind({
+    commandProcessor->bind({
         "login",
         "Log in with the supplied username and password",
         [this](auto args) 
@@ -332,7 +376,7 @@ void Application::bindCommands()
         }
     });
 
-    proc->bind({
+    commandProcessor->bind({
         "logout",
         "Log out the current user",
         [this](auto args) 
@@ -341,7 +385,29 @@ void Application::bindCommands()
         }
     });
 
-    proc->bind({
+    commandProcessor->bind({
+        "add user",
+        "Create an account with the supplied username, password, date of birth, and email",
+        [this](auto args)
+        {
+            if (args.size() != 4)
+                *cout << "Please specifiy a username, password, date of birth, and email";
+            else // Note that the password should be hashed around here!
+                createAccount(args[0], args[1], args[2], args[3]);
+        }
+    });
+
+    // FIXME: Only admins should be able to access this.
+    commandProcessor->bind({
+        "sales",
+        "Show sales metrics by game",
+        [this](auto args)
+        {
+            logSales();
+        }
+    });
+
+    commandProcessor->bind({
         "help",
         "Show command line information",
         [this](auto args)

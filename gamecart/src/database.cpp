@@ -36,6 +36,12 @@ double RowReader::getDouble(int column) const
 std::string RowReader::getText(int column) const 
 {
     const unsigned char* text = sqlite3_column_text(stmt, column);
+    if (!text)
+    {
+        std::string info = sqlite3_errmsg(database);
+        throw std::runtime_error("Failed get text: " + info);
+    }
+
     return reinterpret_cast<const char*>(text);
 }
 

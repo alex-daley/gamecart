@@ -1,5 +1,7 @@
 #include "schema.h"
 
+// Note that with SQLite3, fields marked as INTEGER PRIMARY KEY will auto-increment.
+
 static constexpr auto GAMES_TABLE = R"(
 CREATE TABLE IF NOT EXISTS Games 
 (
@@ -21,6 +23,17 @@ CREATE TABLE IF NOT EXISTS Users
     insecure_password TEXT NOT NULL,
     date_of_birth     TEXT NOT NULL,
     email             TEXT NOT NULL
+))";
+
+static constexpr auto ORDERS_TABLE = R"(
+CREATE TABLE IF NOT EXISTS Orders
+(
+    uid     INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    game_id INTEGER NOT NULL,
+    price   REAL NOT NULL,
+    FOREIGN KEY(game_id) REFERENCES Games(uid),
+    FOREIGN KEY(user_id) REFERENCES Users(uid)
 ))";
 
 static constexpr auto INSERT_GAME = R"(
@@ -69,6 +82,7 @@ void Schema::createTables(Database& database, bool prepopulate)
 {
     database.prepare(GAMES_TABLE).execute();
     database.prepare(USERS_TABLE).execute();
+    database.prepare(ORDERS_TABLE).execute();
 
 
     if (prepopulate)
