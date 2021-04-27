@@ -32,6 +32,10 @@ void CommandProcessor::step()
 {
     std::string line = readline();
     
+    // Ignore if line is empty.
+    if (line == "")
+        return;
+
     for (const auto& command : commands)
     {
         std::regex token(command.name);

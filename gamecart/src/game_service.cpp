@@ -35,7 +35,7 @@ GameService::GameService(Database* database) : database(database)
 void GameService::insert(const Game& game)
 {
     static constexpr auto INSERT_GAME = R"(
-    INSERT OR IGNORE INTO
+    INSERT INTO
         Games (name, genre, age_rating, price, copies)      
     VALUES
         (?, ?, ?, ?, ?)

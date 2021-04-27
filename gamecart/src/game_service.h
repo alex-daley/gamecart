@@ -5,12 +5,12 @@
 
 struct Game
 {
-    int uid;
+    int uid = 0;
     std::string name;
     std::string genre;
-    int ageRating;
-    double price;
-    int copies;
+    int ageRating = 0;
+    double price = 0.0;
+    int copies = 0;
 };
 
 class IGameService

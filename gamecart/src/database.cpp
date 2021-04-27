@@ -90,7 +90,7 @@ RowReader Statement::execute()
 
 Database::Database(const std::string& file) 
 {
-    if (sqlite3_open("gamecart.db", &database) != SQLITE_OK) 
+    if (sqlite3_open(file.c_str(), &database) != SQLITE_OK) 
     {
         std::string info = sqlite3_errmsg(database);
         throw std::runtime_error("Failed to open database: " + info);

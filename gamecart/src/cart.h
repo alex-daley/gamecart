@@ -18,7 +18,9 @@ public:
     void removeOrder(GameID id);
     void removeOrder(GameID id, int copies);
 
-    void removeAt(GameID id);
+    // Remove order reduces the number of copies of a order.
+    // eraseAt removes the entire entry from the order map.
+    void eraseAt(GameID id);
     void clear();
 
 private:

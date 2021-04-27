@@ -205,7 +205,7 @@ void Application::removeFromCart(std::string gameName)
         }
         else
         {
-            cart.removeAt(game.uid);
+            cart.eraseAt(game.uid);
             *cout << "Removed game from your cart\n";
         }
     }
@@ -240,6 +240,7 @@ void Application::buyGamesInCart()
             games->decrementStock(gameID);
     }
 
+    *cout << "Order confirmed!\n";
     cart.clear();
 }
 

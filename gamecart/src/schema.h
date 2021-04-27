@@ -4,5 +4,5 @@
 namespace Schema
 {
     // Create Gamecart database tables if they do not already exist.
-    void createTables(Database& database);
+    void createTables(Database& database, bool prepopulate = true);
 }

@@ -65,22 +65,25 @@ namespace
     }
 }
 
-void Schema::createTables(Database& database)
+void Schema::createTables(Database& database, bool prepopulate)
 {
     database.prepare(GAMES_TABLE).execute();
-
-    // Populate database with some example games.
-    addGame(database, "Fall-Guys"       , "Action"  , 15.99,  3, 300);
-    addGame(database, "Flight-Simulator", "Sim"     , 59.99, 3 , 140);
-    addGame(database, "Rouge-Legacy-2"  , "Action"  , 15.49, 15, 250);
-    addGame(database, "Factorio"        , "Strategy", 21.00, 15, 170);
-    addGame(database, "Hades"           , "Action"  , 15.00, 12, 100);
-    addGame(database, "Cities-Skylines" , "Strategy", 16.00, 3 , 100);
-    addGame(database, "Yakuza-0"        , "Action"  , 14.99, 18, 250);
-
     database.prepare(USERS_TABLE).execute();
 
-    // Populate database with some example users.
-    addUser(database, "admin", "admin", "01/01/1970", "admin@gamecart.co.uk");
-    addUser(database, "john" , "doe"  , "06/08/1997", "john@gamecart.co.uk");
+
+    if (prepopulate)
+    {
+        // Populate database with some example games.
+        addGame(database, "Fall-Guys", "Action", 15.99, 3, 300);
+        addGame(database, "Flight-Simulator", "Sim", 59.99, 3, 140);
+        addGame(database, "Rouge-Legacy-2", "Action", 15.49, 15, 250);
+        addGame(database, "Factorio", "Strategy", 21.00, 15, 170);
+        addGame(database, "Hades", "Action", 15.00, 12, 100);
+        addGame(database, "Cities-Skylines", "Strategy", 16.00, 3, 100);
+        addGame(database, "Yakuza-0", "Action", 14.99, 18, 250);
+
+        // Populate database with some example users.
+        addUser(database, "admin", "admin", "01/01/1970", "admin@gamecart.co.uk");
+        addUser(database, "john", "doe", "06/08/1997", "john@gamecart.co.uk");
+    }
 }

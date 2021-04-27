@@ -51,7 +51,7 @@ void Cart::removeOrder(GameID id, int copies)
         removeOrder(id);
 }
 
-void Cart::removeAt(GameID id)
+void Cart::eraseAt(GameID id)
 {
     orderCount.erase(id);
 }
