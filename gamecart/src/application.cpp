@@ -45,9 +45,10 @@ void Application::run()
 {
     std::stringstream s;
     s << "====================================================================\n";
-    s << " Welcome to the GAMECART command line utility!             \n";
+    s << " Welcome to the GAMECART command line utility!                      \n";
     s << "====================================================================\n";
-    s << "Type " << Utils::colour("help") << " to get started\n";
+    s << "Type " << Utils::colour("help") << " to get started.                \n";
+    s << "See use_guide.docx for comprehensive documentation and examples.    \n";
     *cout << s.str();
 
     while (proc->getIsRunning())
@@ -223,7 +224,11 @@ void Application::buyGamesInCart()
         return;
     }
 
+    
+    *cout << "Username: " << user->username << "\n";
+    *cout << "Email: " << user->email << "\n";
     logCart();
+
     *cout << "Enter y to confirm order\n";
 
     std::string input;
