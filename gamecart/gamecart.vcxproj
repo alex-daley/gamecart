@@ -155,6 +155,7 @@
     <ClCompile Include="src\cart.cpp" />
     <ClCompile Include="src\command_processor.cpp" />
     <ClCompile Include="src\database.cpp" />
+    <ClCompile Include="src\order_service.cpp" />
     <ClCompile Include="src\schema.cpp" />
     <ClCompile Include="src\game_service.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="src\cart.h" />
     <ClInclude Include="src\command_processor.h" />
     <ClInclude Include="src\database.h" />
+    <ClInclude Include="src\order_service.h" />
     <ClInclude Include="src\schema.h" />
     <ClInclude Include="src\game_service.h" />
     <ClInclude Include="src\sqlite\sqlite3.h" />
