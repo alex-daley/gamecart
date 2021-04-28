@@ -1,7 +1,6 @@
 #include "CppUnitTest.h"
 #include "user_service.h"
 #include "mock_database.h"
-#include "database_service.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 

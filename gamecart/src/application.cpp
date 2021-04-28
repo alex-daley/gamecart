@@ -117,9 +117,18 @@ void Application::logGames() const
 
 void Application::logGames(std::string genre) const
 {
-    auto filteredGames = (genre == "*") 
-        ? services.games->findAll()
-        : services.games->findAll(genre);
+    std::vector<Game> filteredGames;
+    try
+    {
+        filteredGames = (genre == "*")
+            ? services.games->findAll()
+            : services.games->findAll(genre);
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << e.what() << "\n";
+        return;
+    }
 
     Rows rows;
     for (const auto& game : filteredGames)
@@ -157,7 +166,7 @@ void Application::logCart() const
     *cout << table << "\n";
 
     *cout << "Total cost: " << Utils::toDecimalPlaces(totalCost, 2) << "\n";
-    *cout << "Total cost: " << Utils::toDecimalPlaces(totalCost * 0.8, 2) << " (before 20% VAT)\n";
+    *cout << "Total cost: " << Utils::toDecimalPlaces(totalCost / 1.20, 2) << " (before 20% VAT)\n";
 }
 
 void Application::logSales() const
@@ -223,9 +232,9 @@ void Application::addToCart(std::string gameName, int quantity)
             *cout << "Added " << game.name << " (x" << quantity << ") to cart\n";
         }
     }
-    catch (const std::runtime_error* e)
+    catch (const std::runtime_error& e)
     {
-        *cout << "Could not add order to cart: " << e->what() << "\n";
+        *cout << "Could not add order to cart: " << e.what() << "\n";
         cart = prevCart;
     }
 }
@@ -259,8 +268,12 @@ void Application::buyGamesInCart()
         *cout << "Please log in before buying the items in your cart\n";
         return;
     }
+    else if (cart.getIsEmpty())
+    {
+        *cout << "No games in cart\n";
+        return;
+    }
 
-    
     *cout << "Username: " << user->username << "\n";
     *cout << "Email: " << user->email << "\n";
     logCart();
@@ -321,7 +334,7 @@ void Application::bindCommands()
                 if (args.size() == 2)
                 {
                     std::optional<int> quantity = Utils::parseInt(args[1]);
-                    if (!quantity)
+                    if (!quantity || *quantity < 1)
                         *cout << "Invalid quantity value\n";
                     else
                         addToCart(game, *quantity);

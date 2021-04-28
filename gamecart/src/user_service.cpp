@@ -27,7 +27,7 @@ UserService::UserService(Database* database) : database(database)
 
 void UserService::insert(CreateUserInfo user)
 {
-    if (user.insecurePassword.length() < 5)
+    if (user.insecurePassword.length() <= 5)
     {
         throw std::runtime_error("Password must be greater than 5 characters long");
     }
